@@ -14,7 +14,7 @@ SuperHub-v3 is based on [SuperDashboard](https://github.com/AgP42/SuperDashboard
 - **Nine buttons**: the D-pad's four arms, two pill buttons, B, A and the speaker grille. Give each a name and point it at:
   - a folder, or a note or document
   - any app installed on your Supernote
-  - a SuperHub page: Favourites, Starred pages, Keywords, Search, Note Clips, To-do, the Bookshelf, or Settings
+  - a SuperHub page: Favourites, Starred pages, Keywords, Search, Note Clips, To-do, or the Bookshelf
   - a **new note** (choose its name, folder, page style, handwriting recognition and orientation) or a **new typed document**
   - today's notebook in a folder of dated notebooks (`YYYY/YYYY-MM-DD.note`)
 - **Button names** beside each button, or hide them for just the console.
@@ -33,10 +33,10 @@ You need Supernote firmware with plugin support: Chauvet **3.29.43 or later** on
 
 1. Open any note. In the toolbar, tap the plugin button (the puzzle piece) and choose **SuperHub-v3**. Allow file access when asked.
 2. From then on, tap the floating **house** on any screen to open it.
-3. **Change the buttons**: tap the **SUPERHUB** lettering under the screen (or a button set to Settings).
-4. **Close it**: tap the small **power light** on the left of the screen frame.
+3. **Change the buttons**: tap the **cog** at the top left.
+4. **Close it**: tap the button at the top right.
 
-A fresh install starts with Favourites, Bookshelf, Starred pages and Digest on the D-pad, Settings and Search on the pill buttons, Notes and New note on B and A, and Calendar on the speaker.
+A fresh install starts with Favourites, Bookshelf, Starred pages and Digest on the D-pad, the Supernote's Settings app and Search on the pill buttons, Notes and New note on B and A, and Calendar on the speaker.
 
 ## Your settings
 

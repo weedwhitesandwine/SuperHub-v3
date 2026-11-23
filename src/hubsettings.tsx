@@ -110,7 +110,6 @@ const PAGES: {v: string; label: string; note: string}[] = [
   {v: 'clips', label: 'Note Clips', note: 'snippets you lassoed and clipped'},
   {v: 'todo', label: 'To-do', note: 'tasks you captured from notes'},
   {v: 'recent', label: 'Bookshelf', note: 'three shelves you choose: recent notes, recent reading, favourites, starred pages'},
-  {v: 'settings', label: 'Settings', note: 'this settings page'},
 ];
 
 const short = (p: string) => p.replace(ROOT, '').replace(/^\//, '') || 'Internal storage';

@@ -2,7 +2,8 @@
  * SuperHub-v3's home screen: a retro handheld console drawn on the plain page.
  * A pixel-art screen shows the clock, date, week and battery; nine console
  * buttons (D-pad up/left/right/down, two pill buttons, B, A and the speaker
- * grille) are the home buttons, each assignable in settings. Empty margins on
+ * grille) are the home buttons, each assignable in settings. The cog (top left)
+ * opens SuperHub's settings and the close button (top right) closes it. Empty margins on
  * all four sides leave the Supernote's own bars clear.
  *
  * Laid out on a 960 x 1280 design (half the Manta's pixels) and scaled to fit.
@@ -17,6 +18,8 @@ import {setRoute} from './route';
 
 const {DashboardNative} = NativeModules;
 const SCENE = require('../assets/hub/scene.png');
+const GEAR = require('../assets/hub/gear.png');
+const FOLD = require('../assets/hub/fold.png');
 const INK = '#1c1c1c';
 const FRAME = '#6a6a6a';
 
@@ -117,8 +120,15 @@ export function ConsoleHome({items, labels, hour24, nonce, onBlock, onNewNote}: 
         <>
           {/* screen frame: rounded, big curve bottom right */}
           <View style={[at(149, 120, 662, 560), {backgroundColor: FRAME, borderRadius: 36 * s, borderBottomRightRadius: 120 * s}]} />
-          {/* power light: tap to close SuperHub */}
-          <TouchableOpacity onPress={() => leavePlugin()} hitSlop={{top: 24, bottom: 24, left: 24, right: 24}} style={[at(183, 382, 16, 16), {borderRadius: 8 * s, backgroundColor: INK}]} />
+          {/* power light (decoration) */}
+          <View style={[at(183, 382, 16, 16), {borderRadius: 8 * s, backgroundColor: INK}]} />
+          {/* the cog (SuperHub settings) and close, like the other SuperHubs, above the screen */}
+          <TouchableOpacity onPress={() => setRoute('config')} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}} style={[at(149, 62, 48, 48), {borderRadius: 24 * s, backgroundColor: '#ececec', alignItems: 'center', justifyContent: 'center'}]}>
+            <Image source={GEAR} style={{width: 26 * s, height: 26 * s}} resizeMode="contain" fadeDuration={0} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => leavePlugin()} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}} style={[at(763, 62, 48, 48), {borderRadius: 24 * s, backgroundColor: '#ececec', alignItems: 'center', justifyContent: 'center'}]}>
+            <Image source={FOLD} style={{width: 26 * s, height: 26 * s}} resizeMode="contain" fadeDuration={0} />
+          </TouchableOpacity>
           {/* the game screen with the clock in its sky */}
           <View style={[at(233, 166, 494, 456), {borderRadius: 14 * s, overflow: 'hidden', backgroundColor: '#eeeeee'}]}>
             <Image source={SCENE} style={{width: '100%', height: '100%'}} resizeMode="stretch" fadeDuration={0} />
@@ -133,10 +143,8 @@ export function ConsoleHome({items, labels, hour24, nonce, onBlock, onNewNote}: 
               </Text>
             </View>
           </View>
-          {/* the name plate: tap for settings */}
-          <TouchableOpacity onPress={() => setRoute('config')} style={at(149, 690, 260, 40)}>
-            <Text style={{fontSize: 22 * s, fontWeight: '600', color: '#444444', letterSpacing: 6 * s}}>SUPERHUB</Text>
-          </TouchableOpacity>
+          {/* the name plate */}
+          <Text style={[at(149, 690, 260, 40), {fontSize: 22 * s, fontWeight: '600', color: '#444444', letterSpacing: 6 * s}]}>SUPERHUB</Text>
 
           {/* D-pad */}
           <View style={[at(DX + A, DY + A, A, A), {backgroundColor: INK}]} />

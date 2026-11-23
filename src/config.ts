@@ -267,7 +267,7 @@ export const DEFAULT_HOME: HomeConfig = {
     {kind: 'block', label: 'Bookshelf', glyph: '▤', block: 'recent'},
     {kind: 'block', label: 'Starred', glyph: '☆', block: 'stars'},
     {kind: 'app', label: 'Digest', glyph: '◇', component: 'com.ratta.supernote.knowledge/com.ratta.supernote.knowledge.activity.KnowledgeActivity'},
-    {kind: 'block', label: 'Settings', glyph: '⚙', block: 'settings'},
+    {kind: 'app', label: 'Settings', glyph: '⚙', component: 'com.ratta.settings/com.ratta.settings.SettingsActivity'},
     {kind: 'block', label: 'Search', glyph: '○', block: 'search'},
     {kind: 'folder', label: 'Notes', glyph: '✎', path: N},
     {kind: 'create', label: 'New note', glyph: '+', folder: N},
