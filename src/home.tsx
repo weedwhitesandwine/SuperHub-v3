@@ -592,27 +592,29 @@ export function RecentShelves({shelves, favPaths, starFolders, nonce, font, s = 
   }, []);
   useEffect(() => {
     let alive = true;
-    (async () => {
-      const all: Record<string, Book[]> = {};
-      for (const k of shelves) {
+    const withTimeout = <T,>(p: Promise<T>, ms: number, fallback: T) => Promise.race([p, new Promise<T>(r => setTimeout(() => r(fallback), ms))]);
+    // each shelf loads on its own, so one slow source can't hold up the others
+    shelves.forEach(k => {
+      (async () => {
+        log(`shelf ${k}: start`);
+        let list: Book[] = [];
         try {
-          all[k] = await booksFor(k, favPaths, starFolders);
+          list = await withTimeout(booksFor(k, favPaths, starFolders), 15000, [] as Book[]);
         } catch (e: any) {
           log(`shelf ${k} failed: ${e?.message}`);
-          all[k] = [];
         }
+        log(`shelf ${k}: ${list.length} covers`);
         if (!alive) return;
-        setBooks(cur => ({...cur, [k]: all[k]}));
-      }
-      // previews one at a time: rendering pages is heavy on the tablet
-      for (const k of shelves)
-        for (const b of all[k] ?? []) {
+        setBooks(cur => ({...cur, [k]: list}));
+        // previews one at a time: rendering pages is heavy on the tablet
+        for (const b of list) {
           if (isFolderPath(b.path) || DOC_EXT.test(b.path)) continue;
-          const png = await pagePreview(b.path, b.mtime, b.page0);
+          const png = await withTimeout(pagePreview(b.path, b.mtime, b.page0), 10000, undefined);
           if (!alive) return;
           if (png) setBooks(cur => ({...cur, [k]: (cur[k] ?? []).map(x => (x.key === b.key ? {...x, png} : x))}));
         }
-    })();
+      })();
+    });
     return () => {
       alive = false;
     };

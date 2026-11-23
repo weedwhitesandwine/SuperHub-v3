@@ -530,7 +530,8 @@ export async function recentModifiedFiles(limit: number): Promise<string[]> {
   // only viewed fell straight back out of Recent as soon as another was opened.
   const opened = await loadOpened();
   try {
-    const cur = unwrap<string>(await PluginCommAPI.getCurrentFilePath());
+    // outside a note this SDK call may never answer: give it a moment, then carry on
+    const cur = unwrap<string>(await Promise.race([PluginCommAPI.getCurrentFilePath(), new Promise<any>(r => setTimeout(() => r(null), 1500))]));
     if (cur && RECENT_EXT.test(cur)) {
       out.push({path: cur, mtime: now + 1});
       await rememberOpened(opened, cur, now);
