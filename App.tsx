@@ -214,6 +214,7 @@ function DashboardScreen(): React.JSX.Element {
   const openBlock = (block: string) => {
     if (!cfg) return;
     if (block === 'settings') return setRoute('config');
+    if (block === 'close') return leavePlugin();
     if (block === 'stars' || block === 'favourites' || block === 'recent') return setPage(block);
     const i = cfg.zones.findIndex(z => blockMatches(block, z));
     if (i >= 0) return setFocus(i);

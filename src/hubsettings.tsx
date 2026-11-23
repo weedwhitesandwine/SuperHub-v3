@@ -109,6 +109,7 @@ const PAGES: {v: string; label: string; note: string}[] = [
   {v: 'search', label: 'Search', note: 'search names, keywords and headings'},
   {v: 'clips', label: 'Note Clips', note: 'snippets you lassoed and clipped'},
   {v: 'todo', label: 'To-do', note: 'tasks you captured from notes'},
+  {v: 'close', label: 'Close SuperHub', note: 'the same as the ⌄ fold button: back to where you were, with the floating house'},
   {v: 'recent', label: 'Bookshelf', note: 'three shelves you choose: recent notes, recent reading, favourites, starred pages'},
 ];
 

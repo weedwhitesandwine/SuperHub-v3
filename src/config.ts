@@ -221,7 +221,7 @@ export type DockItem = (
    *  recognition notebook. doc = a typed document (.doc) in the Supernote's document editor instead. ask (default
    *  true) = show the New note screen to choose name, folder, style and recognition each time. */
   | {kind: 'create'; label: string; glyph: string; folder: string; template?: string; recognition?: boolean; doc?: boolean; landscape?: boolean; ask?: boolean}
-  | {kind: 'block'; label: string; glyph: string; block: 'stars' | 'keywords' | 'favourites' | 'clips' | 'todo' | 'search' | 'recent' | 'settings'}
+  | {kind: 'block'; label: string; glyph: string; block: 'stars' | 'keywords' | 'favourites' | 'clips' | 'todo' | 'search' | 'recent' | 'settings' | 'close'}
 ) & {
   /** The picture: a built-in icon name (assets/hub/icons, without .png) or the full path of the
    *  user's own PNG/JPG in MyStyle/SuperHub/Icons. */
