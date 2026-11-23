@@ -3,13 +3,13 @@
  * PNGs). MyStyle/ is watched by the firmware's file observers and synced to
  * the Supernote cloud; keeping caches there uploaded every scan's output
  * (seen in logcat: XL-L-FromLocalTask pushing scancache.json to the cloud).
- * config.json / profiles.json / SuperHub-v2_log.txt intentionally STAY in
+ * config.json / profiles.json / SuperHub-v3_log.txt intentionally STAY in
  * MyStyle: they're the user-visible contract (hand-editable, and reachable
  * over MTP on the adb-less A5X).
  */
 import {PluginManager} from 'sn-plugin-lib';
 
-export const LEGACY_CACHE_DIR = '/storage/emulated/0/MyStyle/Plugins/SuperHub-v2/';
+export const LEGACY_CACHE_DIR = '/storage/emulated/0/MyStyle/Plugins/SuperHub-v3/';
 
 let dir: string | null = null;
 

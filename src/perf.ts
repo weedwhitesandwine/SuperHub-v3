@@ -1,6 +1,6 @@
 /**
  * Lightweight timing traces into the on-device log ([perf] lines), so a "search
- * feels slow" report can be read off SuperHub-v2_log.txt instead of guessed.
+ * feels slow" report can be read off SuperHub-v3_log.txt instead of guessed.
  */
 import {NativeModules} from 'react-native';
 

@@ -2,6 +2,6 @@
 
 ## 1.0.0
 
-First release of SuperHub-v2: SuperHub 1.0.0 with a modern look. Clock card with this month's calendar (tap a date to open that day's notebook when a button opens dated notebooks), 48 Lucide line icons on soft tiles, hairline cards and page previews, softer settings page.
+First release of SuperHub-v3: SuperHub with a retro handheld console home screen. Original pixel-art screen with the clock, date, week and battery; nine assignable console buttons with optional names; a Bookshelf page with three shelves of up to five covers (recent notes, recent reading, favourites or starred pages); Settings as a button target. The power light closes SuperHub; the name plate opens settings.
 
-Based on SuperDashboard by AgP42; for SuperHub see https://github.com/weedwhitesandwine/SuperHub.
+Based on SuperDashboard by AgP42; siblings: https://github.com/weedwhitesandwine/SuperHub and https://github.com/weedwhitesandwine/SuperHub-v2.

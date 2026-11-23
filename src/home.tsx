@@ -10,13 +10,13 @@ import {PluginFileAPI} from 'sn-plugin-lib';
 import {DockItem, HomeConfig} from './config';
 import {readRecent} from './recent';
 import {createDoc, createNote, openFile, openFolder, launchApp} from './open';
-import {noteTitle, scanStars} from './scanner';
+import {noteTitle, recentModifiedFiles, scanStars} from './scanner';
 import {cacheDir} from './paths';
 import {setRoute} from './route';
 import {ICONS} from './icons';
 
 /** Where people drop their own button pictures (PNG/JPG). */
-export const USER_ICON_DIR = '/storage/emulated/0/MyStyle/SuperHub-v2/Icons';
+export const USER_ICON_DIR = '/storage/emulated/0/MyStyle/SuperHub-v3/Icons';
 
 const TILE = '#ececec'; // the soft grey behind each icon and header button
 const HAIR = '#c8c8c8'; // thin card and page borders
@@ -489,3 +489,142 @@ export function blockMatches(block: string, z: {type: string; title?: string}): 
 }
 
 export type {HomeConfig};
+
+// ---- Bookshelf: shelves of covers the user chooses ---------------------------
+const DOC_EXT = /\.(pdf|epub|doc|docx|txt|cbz|fb2|xps)$/i;
+const PER_SHELF = 5; // five covers fit across the page, so shelves don't scroll
+
+export type ShelfKind = 'notes' | 'docs' | 'favourites' | 'starred';
+export const SHELF_TITLES: Record<ShelfKind, string> = {
+  notes: 'Recently opened notes',
+  docs: 'Recently read',
+  favourites: 'Favourites',
+  starred: 'Starred pages',
+};
+
+interface Book {
+  key: string;
+  path: string;
+  mtime: number;
+  page0: number; // page to preview (0-based, -1 = last)
+  openPage: number; // page to open (1-based, 0 = where you left off)
+  png?: string;
+}
+
+const isFolderPath = (p: string) => !/\.[a-z0-9]{2,5}$/i.test(p);
+
+function Cover({b, font, s}: {b: Book; font?: string; s: number}) {
+  const ff = font ? {fontFamily: font} : null;
+  const t = Math.min(s, 1.0);
+  if (isFolderPath(b.path) || DOC_EXT.test(b.path)) {
+    const folder = isFolderPath(b.path);
+    return (
+      <View style={{aspectRatio: 0.75, backgroundColor: folder ? '#5a5a5a' : '#3a3a3a', borderLeftWidth: 10, borderColor: '#1e1e1e', padding: 16, justifyContent: 'space-between'}}>
+        <Text style={[{fontSize: 22 * t, fontWeight: '600', color: '#ffffff', lineHeight: 28 * t}, ff]} numberOfLines={6}>
+          {folder ? b.path.substring(b.path.lastIndexOf('/') + 1) : noteTitle(b.path)}
+        </Text>
+        <Text style={{fontSize: 13, letterSpacing: 3, color: '#cccccc'}}>{folder ? 'FOLDER' : (b.path.match(/\.([a-z0-9]+)$/i)?.[1] ?? '').toUpperCase()}</Text>
+      </View>
+    );
+  }
+  return (
+    <View style={{aspectRatio: 0.75, backgroundColor: '#ffffff', borderWidth: 1.5, borderColor: '#444444', overflow: 'hidden', alignItems: 'center', justifyContent: 'center'}}>
+      {b.png ? (
+        <Image source={{uri: 'file://' + b.png}} style={{width: '100%', height: '100%'}} resizeMode="cover" resizeMethod="resize" fadeDuration={0} />
+      ) : (
+        <Text style={[{fontSize: 18 * s, color: GREY, padding: 10, textAlign: 'center'}, ff]}>{noteTitle(b.path)}</Text>
+      )}
+    </View>
+  );
+}
+
+/** One shelf: covers standing on a dark plank, its name on a black label, scrolling sideways. */
+function Shelf({title, books, font, s}: {title: string; books: Book[] | null; font?: string; s: number}) {
+  const ff = font ? {fontFamily: font} : null;
+  return (
+    <View style={{marginBottom: 54}}>
+      <View style={{flexDirection: 'row', paddingHorizontal: 30, alignItems: 'flex-end', minHeight: 230}}>
+        {books === null && <Text style={[{fontSize: 17 * s, color: GREY, marginBottom: 20}, ff]}>loading…</Text>}
+        {books?.length === 0 && <Text style={[{fontSize: 17 * s, color: GREY, marginBottom: 20}, ff]}>Nothing here yet.</Text>}
+        {books?.map(b => (
+          <TouchableOpacity key={b.key} onPress={() => (isFolderPath(b.path) ? openFolder(b.path) : openFile(b.path, b.openPage))} style={{width: '17.6%', marginRight: '3%'}}>
+            <Cover b={b} font={font} s={s} />
+            <View style={{position: 'absolute', right: -4, top: 4, bottom: -4, width: 4, backgroundColor: '#bdbdbd'}} />
+          </TouchableOpacity>
+        ))}
+      </View>
+      <View style={{height: 22, backgroundColor: '#5a5a5a', borderBottomWidth: 6, borderColor: '#3a3a3a', marginTop: -4}} />
+      <View style={{position: 'absolute', left: 44, bottom: -28, backgroundColor: '#111111', paddingVertical: 5, paddingHorizontal: 16}}>
+        <Text style={[{fontSize: 17 * Math.min(s, 1.3), color: '#ffffff', letterSpacing: 1}, ff]}>{title}</Text>
+      </View>
+    </View>
+  );
+}
+
+async function booksFor(kind: ShelfKind, favPaths: string[], starFolders: string[]): Promise<Book[]> {
+  if (kind === 'favourites') {
+    return Promise.all(favPaths.slice(0, PER_SHELF).map(async p => ({key: p, path: p, mtime: await mtimeOf(p), page0: 0, openPage: 0})));
+  }
+  if (kind === 'starred') {
+    const res = await scanStars(starFolders.length ? starFolders : ['/storage/emulated/0/Note'], 'off', false);
+    const out: Book[] = [];
+    for (const n of res.notes) for (const pg of n.pages) out.push({key: `${n.file}#${pg.page}`, path: n.file, mtime: n.mtime, page0: pg.page - 1, openPage: pg.page});
+    return out.slice(0, PER_SHELF);
+  }
+  let paths: string[] = [];
+  try {
+    paths = await recentModifiedFiles(PER_SHELF * 4);
+  } catch {
+    paths = await readRecent().catch(() => []);
+  }
+  const want = kind === 'notes' ? (p: string) => /\.note$/i.test(p) : (p: string) => DOC_EXT.test(p);
+  const picked = paths.filter(want).slice(0, PER_SHELF);
+  return Promise.all(picked.map(async p => ({key: p, path: p, mtime: await mtimeOf(p), page0: -1, openPage: 0})));
+}
+
+/** The Bookshelf page: the shelves the user chose in settings, in their order. */
+export function RecentShelves({shelves, favPaths, starFolders, nonce, font, s = 1}: {shelves: ShelfKind[]; favPaths: string[]; starFolders: string[]; nonce: number; font?: string; s?: number}) {
+  const [books, setBooks] = useState<Record<string, Book[] | null>>({});
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('dashboard_refresh_all', () => setTick(t => t + 1));
+    return () => sub.remove();
+  }, []);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const all: Record<string, Book[]> = {};
+      for (const k of shelves) {
+        try {
+          all[k] = await booksFor(k, favPaths, starFolders);
+        } catch (e: any) {
+          log(`shelf ${k} failed: ${e?.message}`);
+          all[k] = [];
+        }
+        if (!alive) return;
+        setBooks(cur => ({...cur, [k]: all[k]}));
+      }
+      // previews one at a time: rendering pages is heavy on the tablet
+      for (const k of shelves)
+        for (const b of all[k] ?? []) {
+          if (isFolderPath(b.path) || DOC_EXT.test(b.path)) continue;
+          const png = await pagePreview(b.path, b.mtime, b.page0);
+          if (!alive) return;
+          if (png) setBooks(cur => ({...cur, [k]: (cur[k] ?? []).map(x => (x.key === b.key ? {...x, png} : x))}));
+        }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [nonce, tick, shelves.join('|'), favPaths.join('|'), starFolders.join('|')]); // eslint-disable-line react-hooks/exhaustive-deps
+  const ff = font ? {fontFamily: font} : null;
+  return (
+    <ScrollView style={{flex: 1, backgroundColor: '#ffffff'}} contentContainerStyle={{paddingTop: 16, paddingBottom: 60}}>
+      <Text style={[{fontSize: 34, fontWeight: '300', color: INK, marginLeft: 30, marginBottom: 26}, ff]}>Bookshelf</Text>
+      {shelves.length === 0 && <Text style={[{fontSize: 18, color: GREY, marginLeft: 30}, ff]}>No shelves chosen. Pick them in SuperHub settings → Bookshelf.</Text>}
+      {shelves.map(k => (
+        <Shelf key={k} title={SHELF_TITLES[k]} books={books[k] ?? null} font={font} s={s} />
+      ))}
+    </ScrollView>
+  );
+}

@@ -19,7 +19,8 @@ import {
   saveProfile,
   TextScale,
 } from './config';
-import {DockPicture, USER_ICON_DIR} from './home';
+import {SHELF_TITLES, USER_ICON_DIR} from './home';
+import {SLOT_NAMES} from './console';
 import {ICONS} from './icons';
 import {leavePlugin} from './bubble';
 import {setRoute} from './route';
@@ -108,6 +109,8 @@ const PAGES: {v: string; label: string; note: string}[] = [
   {v: 'search', label: 'Search', note: 'search names, keywords and headings'},
   {v: 'clips', label: 'Note Clips', note: 'snippets you lassoed and clipped'},
   {v: 'todo', label: 'To-do', note: 'tasks you captured from notes'},
+  {v: 'recent', label: 'Bookshelf', note: 'three shelves you choose: recent notes, recent reading, favourites, starred pages'},
+  {v: 'settings', label: 'Settings', note: 'this settings page'},
 ];
 
 const short = (p: string) => p.replace(ROOT, '').replace(/^\//, '') || 'Internal storage';
@@ -253,7 +256,7 @@ function Backups({cfg, onLoad, onClose}: {cfg: DashboardConfig; onLoad: (c: Dash
   return (
     <Screen title="Saved copies of your settings" onClose={onClose}>
       <Text style={st.p}>
-        Save a copy of all your SuperHub settings under a name, and bring it back at any time. Copies are kept in MyStyle/Plugins/SuperHub-v2/profiles.json, so they survive
+        Save a copy of all your SuperHub settings under a name, and bring it back at any time. Copies are kept in MyStyle/Plugins/SuperHub-v3/profiles.json, so they survive
         updates and reinstalls. SuperHub also keeps an automatic backup of the last settings it saved.
       </Text>
       <View style={st.row}>
@@ -341,9 +344,8 @@ function ButtonEditor({i, d, n, setItem, swap, clear, openPicker, userIcons}: {
   return (
     <View style={[st.card, {borderColor: INK}]}>
       <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 6}}>
-        <DockPicture d={d} size={110} />
-        <View style={{flex: 1, marginLeft: 16}}>
-          <Text style={{fontSize: T.h, fontWeight: '700', color: INK}}>Button {i + 1}</Text>
+        <View style={{flex: 1}}>
+          <Text style={{fontSize: T.h, fontWeight: '700', color: INK}}>{SLOT_NAMES[i] ?? `Button ${i + 1}`}</Text>
           <Text style={{fontSize: T.small, color: GREY, marginTop: 4}}>{describe(d)}</Text>
         </View>
       </View>
@@ -407,43 +409,11 @@ function ButtonEditor({i, d, n, setItem, swap, clear, openPicker, userIcons}: {
         </Text>
       )}
 
-      <Text style={st.label}>Picture</Text>
-      <View style={st.row}>
-        <Btn label={pics ? 'Hide pictures' : 'Choose a picture'} onPress={() => setPics(p => !p)} />
-      </View>
-      {pics && (
-        <>
-          <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
-            {icons.map(name => {
-              const on = name === d.icon;
-              return (
-                <TouchableOpacity
-                  key={name}
-                  onPress={() => {
-                    setItem({...d, icon: name});
-                    setPics(false);
-                  }}
-                  style={{width: '20%', alignItems: 'center', paddingVertical: 8, borderWidth: on ? 3 : 0, borderColor: INK, borderRadius: 12}}>
-                  <DockPicture d={{...d, icon: name}} size={96} />
-                  <Text style={{fontSize: 15, color: INK}} numberOfLines={1}>
-                    {name.startsWith('/') ? baseName(name).replace(/\.(png|jpe?g)$/i, '') : name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          <Text style={st.p}>
-            Your own pictures: copy PNG or JPG files into MyStyle/SuperHub/Icons on this Supernote (square, dark lines on white look best), then reopen settings.
-            {userIcons.length ? ` ${userIcons.length} found.` : ' None found yet.'}
-          </Text>
-        </>
-      )}
-
-      <Text style={st.label}>Place on the home screen</Text>
-      <Text style={[st.p, {marginBottom: 6}]}>1–5 top row, 6–10 bottom row. Choosing a place swaps with the button there.</Text>
+      <Text style={st.label}>Move to another button</Text>
+      <Text style={[st.p, {marginBottom: 6}]}>Swaps with whatever that button opens now.</Text>
       <View style={st.row}>
         {Array.from({length: n}).map((_, k) => (
-          <Btn key={k} label={String(k + 1)} on={k === i} onPress={() => swap(k)} />
+          <Btn key={k} label={SLOT_NAMES[k] ?? String(k + 1)} on={k === i} onPress={() => swap(k)} />
         ))}
       </View>
 
@@ -517,9 +487,6 @@ export function HubSettings(): React.JSX.Element {
   const [userIcons, setUserIcons] = useState<string[]>([]);
   useEffect(() => {
     loadConfig().then(setCfg);
-    listUserIcons().then(setUserIcons);
-    // make the folder people drop their own icons into, so it is there to find
-    DashboardNative?.writeFile?.(`${USER_ICON_DIR}/README.txt`, 'Put your own SuperHub icons here: square PNG or JPG files. They appear in SuperHub settings under Picture.\n').catch(() => {});
   }, []);
 
   const update = (fn: (c: DashboardConfig) => void) => {
@@ -601,30 +568,27 @@ export function HubSettings(): React.JSX.Element {
   return (
     <View style={{flex: 1, backgroundColor: '#ffffff'}}>
       <View style={{flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 10, borderBottomWidth: 2, borderColor: INK}}>
-        <Text style={{fontSize: T.title, fontWeight: '700', color: INK, flex: 1}}>SuperHub-v2 settings</Text>
+        <Text style={{fontSize: T.title, fontWeight: '700', color: INK, flex: 1}}>SuperHub-v3 settings</Text>
         <Btn primary label="Done" onPress={() => setRoute('dashboard')} />
         <Btn label="Close" onPress={() => leavePlugin()} />
       </View>
       <ScrollView style={{flex: 1}} contentContainerStyle={{padding: 20}} keyboardShouldPersistTaps="handled">
-        <Card title="Home buttons" note="Tap a button to change its name, picture, place and what it opens. Changes are saved as you go.">
+        <Card title="Console buttons" note="Tap a button to change its name and what it opens. Changes are saved as you go.">
           <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
             {dock.map((d, k) => (
               <TouchableOpacity
                 key={k}
                 onPress={() => setSel(k)}
-                style={{width: '20%', alignItems: 'center', paddingVertical: 10, borderWidth: k === sel ? 3 : 0, borderColor: INK, borderRadius: 14}}>
-                <DockPicture d={d} size={96} />
-                <Text style={{fontSize: 17, fontWeight: '600', color: d.label ? INK : '#999999', marginTop: 4}} numberOfLines={1}>
+                style={{width: '33.33%', alignItems: 'center', paddingVertical: 14, borderWidth: k === sel ? 3 : 0, borderColor: INK, borderRadius: 14}}>
+                <Text style={{fontSize: 15, color: GREY}} numberOfLines={1}>
+                  {SLOT_NAMES[k]}
+                </Text>
+                <Text style={{fontSize: 19, fontWeight: '600', color: d.label ? INK : '#999999', marginTop: 4}} numberOfLines={1}>
                   {d.label || 'Empty'}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-          {dock.length < MAX_DOCK && (
-            <View style={[st.row, {marginTop: 10}]}>
-              <Btn label="Add a button" onPress={() => update(c => void c.home.dock.push({kind: 'none', label: '', glyph: '+'}))} />
-            </View>
-          )}
         </Card>
 
         {cur && (
@@ -649,15 +613,29 @@ export function HubSettings(): React.JSX.Element {
 
         <Card title="Clock">
           <Choice options={[{v: '24', label: '24-hour'}, {v: '12', label: '12-hour'}]} value={cfg.home.hour24 ? '24' : '12'} onChange={v => update(c => void (c.home.hour24 = v === '24'))} />
-          <Choice options={[{v: 'bold', label: 'Bold digits'}, {v: 'thin', label: 'Thin digits'}]} value={cfg.home.clockBold ? 'bold' : 'thin'} onChange={v => update(c => void (c.home.clockBold = v === 'bold'))} />
         </Card>
 
-        <Card title="Recent pages" note="How many of your most recent notes and documents to show at the bottom of the home screen.">
-          <Choice
-            options={[0, 3, 4, 5].map(k => ({v: String(k), label: k ? String(k) : 'None'}))}
-            value={String(cfg.home.recent)}
-            onChange={v => update(c => void (c.home.recent = Number(v)))}
-          />
+        <Card title="Button names" note="Show each console button's name beside it, or just the buttons.">
+          <Choice options={[{v: 'on', label: 'Show names'}, {v: 'off', label: 'Buttons only'}]} value={cfg.home.labels === false ? 'off' : 'on'} onChange={v => update(c => void (c.home.labels = v === 'on'))} />
+        </Card>
+
+        <Card title="Bookshelf" note="The Bookshelf page has three shelves of up to five covers. Choose what each shelf shows, then point a button at the Bookshelf.">
+          {[0, 1, 2].map(k => (
+            <View key={k}>
+              <Text style={st.label}>Shelf {k + 1}</Text>
+              <Choice
+                options={(['notes', 'docs', 'favourites', 'starred'] as const).map(v => ({v, label: SHELF_TITLES[v]}))}
+                value={(cfg.home.shelves ?? ['notes', 'docs', 'favourites'])[k] as any}
+                onChange={v =>
+                  update(c => {
+                    const sh = (c.home.shelves ?? ['notes', 'docs', 'favourites']).slice(0, 3);
+                    sh[k] = v;
+                    c.home.shelves = sh;
+                  })
+                }
+              />
+            </View>
+          ))}
         </Card>
 
         <Card title="Favourites" note="The notes, documents and folders on the Favourites page, in this order.">
@@ -707,7 +685,7 @@ export function HubSettings(): React.JSX.Element {
           />
         </Card>
 
-        <Card title="Note Clips" note="In a note, lasso something and tap “SuperHub-v2 Clip” in the lasso toolbar to keep it on the Note Clips page (“SuperHub-v2 To-do” makes it a task).">
+        <Card title="Note Clips" note="In a note, lasso something and tap “SuperHub-v3 Clip” in the lasso toolbar to keep it on the Note Clips page (“SuperHub-v3 To-do” makes it a task).">
           <Text style={st.label}>Mark the clipped area on the note</Text>
           <Choice options={[{v: 'off', label: 'No'}, {v: 'grey', label: 'Grey frame'}, {v: 'black', label: 'Black frame'}]} value={cfg.clipFrame ?? 'off'} onChange={v => update(c => void (c.clipFrame = v))} />
           <Text style={st.label}>Keep clips as</Text>
@@ -738,7 +716,7 @@ export function HubSettings(): React.JSX.Element {
           </View>
         </Card>
 
-        <Card title="Troubleshooting" note="Keep a technical log in MyStyle/Plugins/SuperHub-v2 to attach to a bug report.">
+        <Card title="Troubleshooting" note="Keep a technical log in MyStyle/Plugins/SuperHub-v3 to attach to a bug report.">
           <Choice options={[{v: 'off', label: 'No log'}, {v: 'on', label: 'Keep a log'}]} value={cfg.debugLog === true ? 'on' : 'off'} onChange={v => update(c => void (c.debugLog = v === 'on'))} />
         </Card>
 

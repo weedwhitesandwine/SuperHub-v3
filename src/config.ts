@@ -1,6 +1,6 @@
 /**
  * Dashboard configuration: schema, defaults, load/save, named profiles.
- * Stored at MyStyle/Plugins/SuperHub-v2/config.json (older MyStyle/Dashboard/ is a
+ * Stored at MyStyle/Plugins/SuperHub-v3/config.json (older MyStyle/Dashboard/ is a
  * read-only fallback). Read/written via the native reader/writer (fetch caches
  * file:// URLs → stale config; the SDK has no writeFile). The wizard writes it;
  * advanced users can hand-edit the same JSON.
@@ -11,10 +11,10 @@ import {AppItem} from './apps';
 
 const {DashboardNative} = NativeModules;
 
-const CONFIG_PATH = '/storage/emulated/0/MyStyle/Plugins/SuperHub-v2/config.json';
+const CONFIG_PATH = '/storage/emulated/0/MyStyle/Plugins/SuperHub-v3/config.json';
 /** A second copy written with every save, used when config.json is missing or unreadable
  *  (e.g. half-synced), so a bad read never starts the user from blank buttons. */
-const BACKUP_PATH = '/storage/emulated/0/MyStyle/Plugins/SuperHub-v2/config.backup.json';
+const BACKUP_PATH = '/storage/emulated/0/MyStyle/Plugins/SuperHub-v3/config.backup.json';
 
 /** Max recent files a block can show. We rebuild the recent list ourselves from
  *  file mtime (the device's /Recent is out of scope on current firmware), so the
@@ -221,7 +221,7 @@ export type DockItem = (
    *  recognition notebook. doc = a typed document (.doc) in the Supernote's document editor instead. ask (default
    *  true) = show the New note screen to choose name, folder, style and recognition each time. */
   | {kind: 'create'; label: string; glyph: string; folder: string; template?: string; recognition?: boolean; doc?: boolean; landscape?: boolean; ask?: boolean}
-  | {kind: 'block'; label: string; glyph: string; block: 'stars' | 'keywords' | 'favourites' | 'clips' | 'todo' | 'search'}
+  | {kind: 'block'; label: string; glyph: string; block: 'stars' | 'keywords' | 'favourites' | 'clips' | 'todo' | 'search' | 'recent' | 'settings'}
 ) & {
   /** The picture: a built-in icon name (assets/hub/icons, without .png) or the full path of the
    *  user's own PNG/JPG in MyStyle/SuperHub/Icons. */
@@ -240,26 +240,38 @@ export interface HomeConfig {
   hour24: boolean;
   /** Clock digits in bold instead of the thin face. */
   clockBold?: boolean;
+  /** Show each console button's name beside it (false = buttons only). */
+  labels?: boolean;
+  /** What each of the Bookshelf page's three shelves shows: notes, docs, favourites or starred. */
+  shelves?: string[];
 }
 
 // Plain text symbols only: emoji-style ones (♥ ✂ ✉) render as filled grey blobs on the Manta.
 export const DOCK_GLYPHS = ['✎', '▤', '▦', '☑', '★', '☆', '♡', '#', '◆', '◇', '●', '○', '▲', '✦', '☰', '⌂'];
 
-export const HOME_VERSION = 2;
-export const MAX_DOCK = 10;
+export const HOME_VERSION = 3;
+/** SuperHub-v3 has exactly nine console buttons (see SLOT_NAMES in console.tsx). */
+export const MAX_DOCK = 9;
+const N = '/storage/emulated/0/Note';
 export const DEFAULT_HOME: HomeConfig = {
   v: HOME_VERSION,
   on: true,
-  recent: 5,
+  recent: 0,
   hour24: true,
   clockBold: true,
-  // A few things every Supernote has, then empty slots the user fills in Settings.
+  labels: true,
+  shelves: ['notes', 'docs', 'favourites'],
+  // D-pad up/left/right/down, left pill, right pill, B, A, speaker
   dock: [
-    {kind: 'create', label: 'New note', glyph: '+', icon: 'newnote', folder: '/storage/emulated/0/Note'},
-    {kind: 'app', label: 'Calendar', glyph: '+', icon: 'calendar', component: 'com.ratta.supernote.calendar/com.ratta.supernote.calendar.MainActivity'},
-    {kind: 'app', label: 'To-do', glyph: '+', icon: 'todo', component: 'com.ratta.supernote.task/com.ratta.supernote.task.TaskActivity'},
-    {kind: 'app', label: 'Digest', glyph: '+', icon: 'digest', component: 'com.ratta.supernote.knowledge/com.ratta.supernote.knowledge.activity.KnowledgeActivity'},
-    ...Array.from({length: 6}, () => ({kind: 'none' as const, label: '', glyph: '+'})),
+    {kind: 'block', label: 'Favourites', glyph: '★', block: 'favourites'},
+    {kind: 'block', label: 'Bookshelf', glyph: '▤', block: 'recent'},
+    {kind: 'block', label: 'Starred', glyph: '☆', block: 'stars'},
+    {kind: 'app', label: 'Digest', glyph: '◇', component: 'com.ratta.supernote.knowledge/com.ratta.supernote.knowledge.activity.KnowledgeActivity'},
+    {kind: 'block', label: 'Settings', glyph: '⚙', block: 'settings'},
+    {kind: 'block', label: 'Search', glyph: '○', block: 'search'},
+    {kind: 'folder', label: 'Notes', glyph: '✎', path: N},
+    {kind: 'create', label: 'New note', glyph: '+', folder: N},
+    {kind: 'app', label: 'Calendar', glyph: '▦', component: 'com.ratta.supernote.calendar/com.ratta.supernote.calendar.MainActivity'},
   ],
 };
 
@@ -297,7 +309,7 @@ export interface DashboardConfig {
   clipBacklink?: boolean;
   /** MyStyle/fonts .ttf/.otf path for an OCR'd clip pasted as a text box; '' / undefined = the note's default font. */
   clipFontPath?: string;
-  /** Write the debug log to MyStyle/Plugins/SuperHub-v2/SuperHub-v2_log.txt (off by default). */
+  /** Write the debug log to MyStyle/Plugins/SuperHub-v3/SuperHub-v3_log.txt (off by default). */
   debugLog?: boolean;
   zones: Zone[];
 }
@@ -487,6 +499,7 @@ function normalizeHome(h: any): HomeConfig {
     .filter((d: any) => d && ['none', 'folder', 'note', 'app', 'block', 'today', 'create'].includes(d.kind))
     .map((d: any) => ({...d, label: str(d.label), glyph: ({'♥': '♡', '✂': '◇', '✉': '☰'} as any)[str(d.glyph)] ?? (str(d.glyph) || '●')}))
     .slice(0, MAX_DOCK);
+  while (dock.length < MAX_DOCK) dock.push({kind: 'none', label: '', glyph: '+'});
   return {
     v: HOME_VERSION,
     on: h.on !== false,
@@ -494,6 +507,9 @@ function normalizeHome(h: any): HomeConfig {
     recent: typeof h.recent === 'number' ? Math.max(0, Math.min(8, Math.round(h.recent))) : DEFAULT_HOME.recent,
     hour24: h.hour24 !== false,
     clockBold: h.clockBold === true,
+    labels: h.labels !== false,
+    // always three shelves; each shows notes, docs, favourites or starred pages
+    shelves: [0, 1, 2].map(i => (Array.isArray(h.shelves) && ['notes', 'docs', 'favourites', 'starred'].includes(h.shelves[i]) ? h.shelves[i] : ['notes', 'docs', 'favourites'][i])),
   };
 }
 
@@ -575,7 +591,7 @@ function normalizeZone(z: any): Zone {
 }
 
 // ---- Named config profiles (save / reload; guards against accidental reset) --
-const PROFILES_PATH = '/storage/emulated/0/MyStyle/Plugins/SuperHub-v2/profiles.json';
+const PROFILES_PATH = '/storage/emulated/0/MyStyle/Plugins/SuperHub-v3/profiles.json';
 
 async function readProfiles(): Promise<Record<string, DashboardConfig>> {
   try {

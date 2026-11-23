@@ -16,7 +16,8 @@ import {NewNoteScreen} from './src/newnote';
 import type {DockItem} from './src/config';
 import {autoRefreshTitles} from './src/notetoc';
 import {timed} from './src/perf';
-import {blockMatches, Dock, FavouritesPage, HomeClock, openToday, RecentStrip, StarredPages} from './src/home';
+import {blockMatches, Dock, FavouritesPage, HomeClock, openToday, RecentShelves, RecentStrip, ShelfKind, StarredPages} from './src/home';
+import {ConsoleHome} from './src/console';
 
 const SCALE: Record<string, number> = {S: 1, M: 1.18, L: 1.4, XL: 1.7};
 
@@ -84,7 +85,7 @@ function DashboardScreen(): React.JSX.Element {
   // Home layout: a dock button can open one block on its own (null = the home page).
   const [focus, setFocus] = useState<number | null>(null);
   // ...or one of the two full-screen pages: starred pages / Supernote favourites.
-  const [page, setPage] = useState<'stars' | 'favourites' | null>(null);
+  const [page, setPage] = useState<'stars' | 'favourites' | 'recent' | null>(null);
   // ...or the New note screen for a New note button.
   const [newNote, setNewNote] = useState<Extract<DockItem, {kind: 'create'}> | null>(null);
   // Reload config + bump `nonce` on mount and every dashboard (re)entry, so
@@ -212,7 +213,8 @@ function DashboardScreen(): React.JSX.Element {
   const home = cfg?.home?.on ? cfg.home : null;
   const openBlock = (block: string) => {
     if (!cfg) return;
-    if (block === 'stars' || block === 'favourites') return setPage(block);
+    if (block === 'settings') return setRoute('config');
+    if (block === 'stars' || block === 'favourites' || block === 'recent') return setPage(block);
     const i = cfg.zones.findIndex(z => blockMatches(block, z));
     if (i >= 0) return setFocus(i);
     // No block of that kind yet (e.g. Search, Note Clips, To-do): add a default one, kept hidden on the home screen.
@@ -229,6 +231,20 @@ function DashboardScreen(): React.JSX.Element {
   const starFolders = (cfg?.zones.find(z => z.type === 'stars') as any)?.folders ?? [];
 
   if (newNote) return <NewNoteScreen d={newNote} onClose={() => setNewNote(null)} />;
+
+  // SuperHub-v3's home: the console fills the page (no header; the power light
+  // closes SuperHub and the SUPERHUB name plate opens settings).
+  if (cfg && home && !page && !focused)
+    return (
+      <ConsoleHome
+        items={home.dock}
+        labels={home.labels !== false}
+        hour24={home.hour24}
+        nonce={nonce}
+        onBlock={openBlock}
+        onNewNote={setNewNote}
+      />
+    );
 
   return (
     <View style={ui.container}>
@@ -252,6 +268,16 @@ function DashboardScreen(): React.JSX.Element {
       {!cfg && <Text style={ui.hint}>loading…</Text>}
       {cfg && !home && cfg.zones.length === 0 && (
         <Text style={ui.hint}>No zone. Configure the dashboard via ⚙ Settings.</Text>
+      )}
+      {cfg && page === 'recent' && (
+        <RecentShelves
+          shelves={(home?.shelves ?? ['notes', 'docs', 'favourites']) as ShelfKind[]}
+          favPaths={(cfg.zones.find(z => z.type === 'favourites') as any)?.paths ?? []}
+          starFolders={starFolders}
+          nonce={nonce}
+          font={fontFamily}
+          s={ts.s}
+        />
       )}
       {cfg && page === 'stars' && <StarredPages folders={starFolders} nonce={nonce} font={fontFamily} s={ts.s} />}
       {cfg && page === 'favourites' && <FavouritesPage paths={(cfg.zones.find(z => z.type === 'favourites') as any)?.paths ?? []} nonce={nonce} font={fontFamily} s={ts.s} />}

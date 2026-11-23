@@ -1,7 +1,7 @@
 MIT License
 
 Copyright (c) 2026 AgP42 (SuperDashboard)
-Copyright (c) 2026 weedwhitesandwine (SuperHub, SuperHub-v2)
+Copyright (c) 2026 weedwhitesandwine (SuperHub, SuperHub-v2, SuperHub-v3)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-
-The icons in assets/hub and icon-src/lucide are from Lucide (https://lucide.dev),
-used under the ISC licence; see icon-src/lucide/LICENSE.

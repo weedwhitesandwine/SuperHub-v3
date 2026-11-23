@@ -543,7 +543,7 @@ async function handleLassoToClip(kind) {
 
 PluginManager.registerButton(1, ['NOTE', 'DOC'], {
   id: TOOLBAR_BTN,
-  name: 'SuperHub-v2',
+  name: 'SuperHub-v3',
   icon: Image.resolveAssetSource(require('./assets/icon.png')).uri,
   showType: 1,
 });
@@ -554,7 +554,7 @@ PluginManager.registerButton(1, ['NOTE', 'DOC'], {
 // captured via the text-selection buttons below instead.
 PluginManager.registerButton(2, ['NOTE', 'DOC'], {
   id: LASSO_BTN,
-  name: 'SuperHub-v2 Clip',
+  name: 'SuperHub-v3 Clip',
   icon: Image.resolveAssetSource(require('./assets/icon-clip.png')).uri,
   // Lasso data types that KEEP this button enabled: 0=stroke, 1=title,
   // 2=picture, 3=text, 4=link, 5=geometry. The firmware greys the button out if
@@ -569,7 +569,7 @@ PluginManager.registerButton(2, ['NOTE', 'DOC'], {
 // to-do is dashboard-only: no on-page mark, no live note sync (see handleLassoToClip).
 PluginManager.registerButton(2, ['NOTE', 'DOC'], {
   id: LASSO_TODO_BTN,
-  name: 'SuperHub-v2 To-do',
+  name: 'SuperHub-v3 To-do',
   icon: Image.resolveAssetSource(require('./assets/icon-todo.png')).uri,
   editDataTypes: [0, 1, 2, 3, 4, 5],
   showType: 0,
@@ -579,13 +579,13 @@ PluginManager.registerButton(2, ['NOTE', 'DOC'], {
 // PDF/EPUB text (they appear when you highlight text, like the digest button).
 PluginManager.registerButton(3, ['DOC'], {
   id: SEL_BTN,
-  name: 'SuperHub-v2 Clip',
+  name: 'SuperHub-v3 Clip',
   icon: Image.resolveAssetSource(require('./assets/icon-clip.png')).uri,
   showType: 0,
 });
 PluginManager.registerButton(3, ['DOC'], {
   id: SEL_TODO_BTN,
-  name: 'SuperHub-v2 To-do',
+  name: 'SuperHub-v3 To-do',
   icon: Image.resolveAssetSource(require('./assets/icon-todo.png')).uri,
   showType: 0,
 });

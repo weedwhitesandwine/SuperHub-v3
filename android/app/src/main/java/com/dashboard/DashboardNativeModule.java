@@ -611,8 +611,8 @@ public class DashboardNativeModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private static final String LOG_PATH = "/storage/emulated/0/MyStyle/Plugins/SuperHub-v2/SuperHub-v2_log.txt";
-    private static final String LOG_OLD_PATH = "/storage/emulated/0/MyStyle/Plugins/SuperHub-v2/SuperHub-v2_log.old.txt";
+    private static final String LOG_PATH = "/storage/emulated/0/MyStyle/Plugins/SuperHub-v3/SuperHub-v3_log.txt";
+    private static final String LOG_OLD_PATH = "/storage/emulated/0/MyStyle/Plugins/SuperHub-v3/SuperHub-v3_log.old.txt";
     private static final long LOG_CAP = 262_144;
     // Settings → Diagnostics → Debug log. Off = logcat only, no file. Static so
     // it holds for the whole PluginHost process; JS sets it on every config load/save.
